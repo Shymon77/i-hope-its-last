@@ -20,12 +20,13 @@ class Phone(Field):
 class Birthday(Field):
     def __init__(self, value):
         try:
-            self.value = datetime.strptime(value, "%d.%m.%Y").date()
+            datetime.strptime(value, "%d.%m.%Y")
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
+        self.value = value
 
     def __str__(self):
-        return self.value.strftime("%d.%m.%Y")
+        return self.value
 
 class Record:
     def __init__(self, name):
@@ -84,9 +85,13 @@ class AddressBook(UserDict):
         upcoming = []
         for record in self.data.values():
             if record.birthday:
-                delta = record.birthday.value - today
-                if 0 <= delta.days <= 7:
-                    greeting_day = record.birthday.value
+                birthday_date = datetime.strptime(record.birthday.value, "%d.%m.%Y").date()
+                birthday_this_year = birthday_date.replace(year=today.year)
+                if birthday_this_year < today:
+                    birthday_this_year = birthday_this_year.replace(year=today.year + 1)
+                days_left = (birthday_this_year - today).days
+                if 0 <= days_left <= 7:
+                    greeting_day = birthday_this_year
                     if greeting_day.weekday() >= 5:
                         greeting_day += timedelta(days=(7 - greeting_day.weekday()))
                     upcoming.append({"name": record.name.value, "birthday": greeting_day.strftime("%d.%m.%Y")})
