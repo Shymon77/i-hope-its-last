@@ -1,5 +1,6 @@
 from collections import UserDict
 from datetime import datetime, timedelta
+import pickle
 
 class Field:
     def __init__(self, value):
@@ -100,6 +101,17 @@ class AddressBook(UserDict):
     def __str__(self):
         return '\n'.join(str(record) for record in self.data.values())
 
+def save_data(book, filename="addressbook.pkl"):
+    with open(filename, "wb") as f:
+        pickle.dump(book, f)
+
+def load_data(filename="addressbook.pkl"):
+    try:
+        with open(filename, "rb") as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return AddressBook()
+
 def input_error(func):
     def inner(*args, **kwargs):
         try:
@@ -187,7 +199,7 @@ def birthdays(args, book):
     return "\n".join([f"{entry['name']} - {entry['birthday']}" for entry in upcoming])
 
 def main():
-    book = AddressBook()
+    book = load_data()
     print("Welcome to the assistant bot!")
     while True:
         user_input = input("Enter a command: ")
@@ -199,6 +211,7 @@ def main():
         command, args = result
 
         if command in ["close", "exit"]:
+            save_data(book)
             print("Good bye!")
             break
         elif command == "hello":
