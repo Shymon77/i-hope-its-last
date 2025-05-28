@@ -1,6 +1,7 @@
 from collections import UserDict
 from datetime import datetime, timedelta
 import pickle
+from abc import ABC, abstractmethod
 
 class Field:
     def __init__(self, value):
@@ -198,40 +199,58 @@ def birthdays(args, book):
         return "No upcoming birthdays."
     return "\n".join([f"{entry['name']} - {entry['birthday']}" for entry in upcoming])
 
+class UserInterface(ABC):
+    @abstractmethod
+    def show_message(self, message: str):
+        pass
+
+    @abstractmethod
+    def get_input(self, prompt: str) -> str:
+        pass
+
+class ConsoleInterface(UserInterface):
+    def show_message(self, message: str):
+        print(message)
+
+    def get_input(self, prompt: str) -> str:
+        return input(prompt)
+
 def main():
+    ui = ConsoleInterface()
     book = load_data()
-    print("Welcome to the assistant bot!")
+    ui.show_message("Welcome to the assistant bot!")
+
     while True:
-        user_input = input("Enter a command: ")
+        user_input = ui.get_input("Enter a command: ")
         result = parse_input(user_input)
         if isinstance(result, str):
-            print(result)
+            ui.show_message(result)
             continue
 
         command, args = result
 
         if command in ["close", "exit"]:
             save_data(book)
-            print("Good bye!")
+            ui.show_message("Good bye!")
             break
         elif command == "hello":
-            print("How can I help you?")
+            ui.show_message("How can I help you?")
         elif command == "add":
-            print(add_contact(args, book))
+            ui.show_message(add_contact(args, book))
         elif command == "change":
-            print(change_contact(args, book))
+            ui.show_message(change_contact(args, book))
         elif command == "phone":
-            print(get_phone(args, book))
+            ui.show_message(get_phone(args, book))
         elif command == "all":
-            print(show_all(book))
+            ui.show_message(show_all(book))
         elif command == "add-birthday":
-            print(add_birthday(args, book))
+            ui.show_message(add_birthday(args, book))
         elif command == "show-birthday":
-            print(show_birthday(args, book))
+            ui.show_message(show_birthday(args, book))
         elif command == "birthdays":
-            print(birthdays(args, book))
+            ui.show_message(birthdays(args, book))
         else:
-            print("Invalid command.")
+            ui.show_message("Invalid command.")
 
 if __name__ == "__main__":
     main()
