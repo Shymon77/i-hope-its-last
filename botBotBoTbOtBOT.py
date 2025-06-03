@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pickle
 from abc import ABC, abstractmethod
 
+
 class Field:
     def __init__(self, value):
         self.value = value
@@ -10,14 +11,17 @@ class Field:
     def __str__(self):
         return str(self.value)
 
+
 class Name(Field):
     pass
+
 
 class Phone(Field):
     def __init__(self, value):
         if not value.isdigit() or len(value) != 10:
             raise ValueError("Phone number must be exactly 10 digits.")
         super().__init__(value)
+
 
 class Birthday(Field):
     def __init__(self, value):
@@ -29,6 +33,7 @@ class Birthday(Field):
 
     def __str__(self):
         return self.value
+
 
 class Record:
     def __init__(self, name):
@@ -65,9 +70,10 @@ class Record:
         self.birthday = Birthday(birthday)
 
     def __str__(self):
-        phones_str = ', '.join(p.value for p in self.phones)
+        phones_str = ", ".join(p.value for p in self.phones)
         birthday_str = f", birthday: {self.birthday}" if self.birthday else ""
         return f"Contact name: {self.name.value}, phones: {phones_str}{birthday_str}"
+
 
 class AddressBook(UserDict):
     def add_record(self, record):
@@ -87,7 +93,9 @@ class AddressBook(UserDict):
         upcoming = []
         for record in self.data.values():
             if record.birthday:
-                birthday_date = datetime.strptime(record.birthday.value, "%d.%m.%Y").date()
+                birthday_date = datetime.strptime(
+                    record.birthday.value, "%d.%m.%Y"
+                ).date()
                 birthday_this_year = birthday_date.replace(year=today.year)
                 if birthday_this_year < today:
                     birthday_this_year = birthday_this_year.replace(year=today.year + 1)
@@ -96,15 +104,22 @@ class AddressBook(UserDict):
                     greeting_day = birthday_this_year
                     if greeting_day.weekday() >= 5:
                         greeting_day += timedelta(days=(7 - greeting_day.weekday()))
-                    upcoming.append({"name": record.name.value, "birthday": greeting_day.strftime("%d.%m.%Y")})
+                    upcoming.append(
+                        {
+                            "name": record.name.value,
+                            "birthday": greeting_day.strftime("%d.%m.%Y"),
+                        }
+                    )
         return upcoming
 
     def __str__(self):
-        return '\n'.join(str(record) for record in self.data.values())
+        return "\n".join(str(record) for record in self.data.values())
+
 
 def save_data(book, filename="addressbook.pkl"):
     with open(filename, "wb") as f:
         pickle.dump(book, f)
+
 
 def load_data(filename="addressbook.pkl"):
     try:
@@ -112,6 +127,7 @@ def load_data(filename="addressbook.pkl"):
             return pickle.load(f)
     except FileNotFoundError:
         return AddressBook()
+
 
 def input_error(func):
     def inner(*args, **kwargs):
@@ -123,7 +139,9 @@ def input_error(func):
             return "Enter user name."
         except KeyError:
             return "Contact not found."
+
     return inner
+
 
 @input_error
 def parse_input(user_input):
@@ -132,6 +150,7 @@ def parse_input(user_input):
     cmd, *args = user_input.strip().split()
     cmd = cmd.lower()
     return cmd, args
+
 
 @input_error
 def add_contact(args, book):
@@ -146,6 +165,7 @@ def add_contact(args, book):
         record.add_phone(phone)
     return message
 
+
 @input_error
 def change_contact(args, book):
     name, old_phone, new_phone = args
@@ -156,6 +176,7 @@ def change_contact(args, book):
     else:
         raise KeyError
 
+
 @input_error
 def get_phone(args, book):
     name = args[0]
@@ -165,11 +186,13 @@ def get_phone(args, book):
     else:
         raise KeyError
 
+
 @input_error
 def show_all(book):
     if not book.data:
         return "No contacts saved."
     return str(book)
+
 
 @input_error
 def add_birthday(args, book):
@@ -180,6 +203,7 @@ def add_birthday(args, book):
         return "Birthday added."
     else:
         return "Contact not found."
+
 
 @input_error
 def show_birthday(args, book):
@@ -192,12 +216,14 @@ def show_birthday(args, book):
     else:
         return "Contact not found."
 
+
 @input_error
 def birthdays(args, book):
     upcoming = book.get_upcoming_birthdays()
     if not upcoming:
         return "No upcoming birthdays."
     return "\n".join([f"{entry['name']} - {entry['birthday']}" for entry in upcoming])
+
 
 class UserInterface(ABC):
     @abstractmethod
@@ -208,12 +234,14 @@ class UserInterface(ABC):
     def get_input(self, prompt: str) -> str:
         pass
 
+
 class ConsoleInterface(UserInterface):
     def show_message(self, message: str):
         print(message)
 
     def get_input(self, prompt: str) -> str:
         return input(prompt)
+
 
 def main():
     ui = ConsoleInterface()
@@ -251,6 +279,7 @@ def main():
             ui.show_message(birthdays(args, book))
         else:
             ui.show_message("Invalid command.")
+
 
 if __name__ == "__main__":
     main()
